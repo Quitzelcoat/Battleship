@@ -8,5 +8,10 @@
     "strictNullChecks": true,
     "strictFunctionTypes": true
   },
-  "exclude": ["node_modules", "**/node_modules/*"]
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*",
+    "**/*.test.js",
+    "webpack.config.cjs"
+  ] // Exclude test files
 }
