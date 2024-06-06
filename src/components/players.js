@@ -12,8 +12,8 @@ const Player = (type) => {
         for (let j = 0; j < 10; j++) {
           if (
             !opponentBoard.board[i][j] &&
-            !!opponentBoard.missedAttacks.some(
-              (attack) => attack.x === j && attack.y === i
+            !opponentBoard.missedAttacks.some(
+              (attack) => attack.y === j && attack.x === i
             )
           ) {
             validAttacks.push({ x: j, y: i });

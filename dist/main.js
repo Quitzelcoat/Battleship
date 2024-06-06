@@ -21,6 +21,9 @@ const dom = () => {
       for (let x = 0; x < 10; x++) {
         const cell = document.createElement("div");
         cell.id = `${boardId}-${x}-${y}`;
+        cell.dataset.x = x; // Add x data attribute
+        cell.dataset.y = y; // Add y data attribute
+        cell.classList.add("eachCell");
 
         if (gameboard.board[y][x]) {
           cell.classList.add("ship");
@@ -31,8 +34,45 @@ const dom = () => {
     }
   };
 
+  function updateBoard(gameboard, boardId) {
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 10; x++) {
+        const cellId = `${boardId}-${x}-${y}`;
+        const cell = document.getElementById(cellId);
+
+        if (!cell) {
+          console.error(`Cell with ID ${cellId} not found.`);
+          continue;
+        }
+
+        cell.classList.remove("hit", "miss", "sunk");
+
+        const ship = gameboard.board[y][x];
+        if (ship && ship.isSunk()) {
+          for (let i = 0; i < ship.length; i++) {
+            let sunkX = ship.isVertical ? x : x + i;
+            let sunkY = ship.isVertical ? y + i : y;
+            const sunkCell = document.getElementById(
+              `${boardId}-${sunkX}-${sunkY}`
+            );
+            sunkCell.classList.add("sunk");
+          }
+        } else if (ship && ship.hits > 0) {
+          cell.classList.add("hit");
+        } else if (
+          gameboard.missedAttacks.some(
+            (attack) => attack.x === x && attack.y === y
+          )
+        ) {
+          cell.classList.add("miss");
+        }
+      }
+    }
+  }
+
   return {
     renderBoard,
+    updateBoard,
   };
 };
 
@@ -151,8 +191,8 @@ const Player = (type) => {
         for (let j = 0; j < 10; j++) {
           if (
             !opponentBoard.board[i][j] &&
-            !!opponentBoard.missedAttacks.some(
-              (attack) => attack.x === j && attack.y === i
+            !opponentBoard.missedAttacks.some(
+              (attack) => attack.y === j && attack.x === i
             )
           ) {
             validAttacks.push({ x: j, y: i });
@@ -292,43 +332,82 @@ var __webpack_exports__ = {};
   \**********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_players_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/players.js */ "./src/components/players.js");
-/* harmony import */ var _components_ship_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/ship.js */ "./src/components/ship.js");
-/* harmony import */ var _components_dom_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/dom.js */ "./src/components/dom.js");
+/* harmony import */ var _components_dom_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/dom.js */ "./src/components/dom.js");
 
-
+// import Ship from "./components/ship.js";
 
 
 // gameboard example run.
 const humanPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("human");
 const computerPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("computer");
+let currentPlayer = humanPlayer;
 
-humanPlayer.gameboard.placeShip((0,_components_ship_js__WEBPACK_IMPORTED_MODULE_1__["default"])(5), 0, 0, true);
-humanPlayer.gameboard.placeShip((0,_components_ship_js__WEBPACK_IMPORTED_MODULE_1__["default"])(4), 2, 2);
-humanPlayer.gameboard.placeShip((0,_components_ship_js__WEBPACK_IMPORTED_MODULE_1__["default"])(3), 4, 4, true);
-humanPlayer.gameboard.placeShip((0,_components_ship_js__WEBPACK_IMPORTED_MODULE_1__["default"])(3), 6, 0);
-humanPlayer.gameboard.placeShip((0,_components_ship_js__WEBPACK_IMPORTED_MODULE_1__["default"])(2), 8, 8);
-
-console.log("Human Player Gameboard:");
-console.table(humanPlayer.gameboard.board);
-
+humanPlayer.placeShipsRandomly();
 computerPlayer.placeShipsRandomly();
 
-console.log("Computer Player Gameboard:");
-console.table(computerPlayer.gameboard.board);
+const domFunctions = (0,_components_dom_js__WEBPACK_IMPORTED_MODULE_1__["default"])();
 
-//dom show and minipulation
-document.addEventListener("DOMContentLoaded", () => {
-  const humanBoardContainer = document.getElementById("playerBoard");
-  const computerBoardContainer = document.getElementById("computerBoard");
+const computerBoardContainer = document.getElementById("computerBoard");
+const humanBoardContainer = document.getElementById("playerBoard");
 
+function createBoard() {
   // Check if elements exist
   if (humanBoardContainer && computerBoardContainer) {
-    const domFunctions = (0,_components_dom_js__WEBPACK_IMPORTED_MODULE_2__["default"])();
     domFunctions.renderBoard(humanPlayer.gameboard, "playerBoard");
     domFunctions.renderBoard(computerPlayer.gameboard, "computerBoard");
   } else {
     console.error("Board containers not found in the DOM.");
   }
+}
+
+// function gamePlay() {}
+
+function playComputerTurn() {
+  setTimeout(() => {
+    const x = Math.floor(Math.random() * 10); // Generate random x
+    const y = Math.floor(Math.random() * 10); // Generate random y
+    computerPlayer.attack(x, y, humanPlayer.gameboard);
+    domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
+    if (humanPlayer.gameboard.areAllShipsSunk()) {
+      alert("Computer wins!");
+    } else {
+      currentPlayer = humanPlayer;
+    }
+  }, 1000);
+}
+
+//dom show and minipulation
+document.addEventListener("DOMContentLoaded", () => {
+  createBoard();
+
+  computerBoardContainer.addEventListener("click", (event) => {
+    if (!currentPlayer.isComputer) {
+      // Check if it's human's turn
+      const cell = event.target;
+      if (cell.classList.contains("eachCell")) {
+        const cellId = cell.id;
+        const [x, y] = cellId.split("-").slice(1);
+        const attackResult = humanPlayer.attack(
+          parseInt(x),
+          parseInt(y),
+          computerPlayer.gameboard
+        );
+        domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+        if (attackResult === "hit") {
+          cell.classList.add("hit");
+        } else if (attackResult === "miss") {
+          cell.classList.add("miss");
+        }
+
+        if (computerPlayer.gameboard.areAllShipsSunk()) {
+          alert("You win!");
+        } else {
+          currentPlayer = computerPlayer;
+          playComputerTurn();
+        }
+      }
+    }
+  });
 });
 
 })();
