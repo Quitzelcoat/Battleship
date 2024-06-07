@@ -21,8 +21,8 @@ const dom = () => {
       for (let x = 0; x < 10; x++) {
         const cell = document.createElement("div");
         cell.id = `${boardId}-${x}-${y}`;
-        cell.dataset.x = x; // Add x data attribute
-        cell.dataset.y = y; // Add y data attribute
+        cell.dataset.x = x;
+        cell.dataset.y = y;
         cell.classList.add("eachCell");
 
         if (gameboard.board[y][x]) {
@@ -45,26 +45,29 @@ const dom = () => {
           continue;
         }
 
-        cell.classList.remove("hit", "miss", "sunk");
-
         const ship = gameboard.board[y][x];
+
         if (ship && ship.isSunk()) {
-          for (let i = 0; i < ship.length; i++) {
-            let sunkX = ship.isVertical ? x : x + i;
-            let sunkY = ship.isVertical ? y + i : y;
-            const sunkCell = document.getElementById(
-              `${boardId}-${sunkX}-${sunkY}`
-            );
-            sunkCell.classList.add("sunk");
+          cell.classList.add("sunk");
+        } else {
+          if (
+            cell.classList.contains("hit") ||
+            cell.classList.contains("miss")
+          ) {
+            continue;
           }
-        } else if (ship && ship.hits > 0) {
-          cell.classList.add("hit");
-        } else if (
-          gameboard.missedAttacks.some(
-            (attack) => attack.x === x && attack.y === y
-          )
-        ) {
-          cell.classList.add("miss");
+
+          cell.classList.remove("hit", "miss");
+
+          if (ship && ship.hits > 0) {
+            cell.classList.add("hit");
+          } else if (
+            gameboard.missedAttacks.some(
+              (attack) => attack.x === x && attack.y === y
+            )
+          ) {
+            cell.classList.add("miss");
+          }
         }
       }
     }
@@ -131,8 +134,10 @@ const Gameboard = () => {
     const ship = board[y][x];
     if (ship) {
       ship.hit();
+      return "hit";
     } else {
       missedAttacks.push({ x, y });
+      return "miss";
     }
   };
 
@@ -147,6 +152,18 @@ const Gameboard = () => {
     return true;
   };
 
+  const checkSunkenShips = () => {
+    for (let i = 0; i < 10; i++) {
+      for (let j = 0; j < 10; j++) {
+        if (board[i][j] && board[i][j].isSunk()) {
+          board[i][j].markSunk(); // Mark ship as sunk
+          return board[i][j]; // Return the sunk ship
+        }
+      }
+    }
+    return null; // No ship was sunk
+  };
+
   return {
     placeShip,
     receiveAttack,
@@ -157,6 +174,7 @@ const Gameboard = () => {
     get missedAttacks() {
       return missedAttacks;
     },
+    checkSunkenShips,
   };
 };
 
@@ -186,25 +204,33 @@ const Player = (type) => {
 
   const attack = (x, y, opponentBoard) => {
     if (isComputer) {
-      const validAttacks = [];
-      for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 10; j++) {
-          if (
-            !opponentBoard.board[i][j] &&
-            !opponentBoard.missedAttacks.some(
-              (attack) => attack.y === j && attack.x === i
-            )
-          ) {
-            validAttacks.push({ x: j, y: i });
-          }
-        }
+      let validAttack = false;
+      while (!validAttack) {
+        x = Math.floor(Math.random() * 10);
+        y = Math.floor(Math.random() * 10);
+        validAttack =
+          !opponentBoard.missedAttacks.some(
+            (attack) => attack.x === x && attack.y === y
+          ) && !opponentBoard.board[y][x];
       }
-      const randomIndex = Math.floor(Math.random() * validAttacks.length);
-      x = validAttacks[randomIndex].x;
-      y = validAttacks[randomIndex].y;
     }
 
-    opponentBoard.receiveAttack(x, y);
+    const attackResult = opponentBoard.receiveAttack(x, y);
+
+    const sunkShipInfo = opponentBoard.checkSunkenShips();
+    if (sunkShipInfo) {
+      for (let i = 0; i < sunkShipInfo.length; i++) {
+        const sunkX = sunkShipInfo.isVertical
+          ? sunkShipInfo.x
+          : sunkShipInfo.x + i;
+        const sunkY = sunkShipInfo.isVertical
+          ? sunkShipInfo.y + i
+          : sunkShipInfo.y;
+        opponentBoard.board[sunkY][sunkX].markSunk(); // Mark the cell as sunk
+      }
+    }
+
+    return attackResult;
   };
 
   const placeShipsRandomly = () => {
@@ -260,7 +286,12 @@ const Ship = (length) => {
     return hits >= length;
   }
 
-  return { length, hit, isSunk };
+  let isSunkAlready = false;
+  function markSunk() {
+    isSunkAlready = true;
+  }
+
+  return { length, hit, isSunk, markSunk, isMarkedSunk: () => isSunkAlready }; // Added markSunk and isMarkedSunk methods
 };
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Ship);
@@ -368,6 +399,7 @@ function playComputerTurn() {
     const y = Math.floor(Math.random() * 10); // Generate random y
     computerPlayer.attack(x, y, humanPlayer.gameboard);
     domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
+    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
     if (humanPlayer.gameboard.areAllShipsSunk()) {
       alert("Computer wins!");
     } else {
@@ -382,11 +414,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   computerBoardContainer.addEventListener("click", (event) => {
     if (!currentPlayer.isComputer) {
+      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+      domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
+
       // Check if it's human's turn
       const cell = event.target;
-      if (cell.classList.contains("eachCell")) {
+      if (
+        cell.classList.contains("eachCell") &&
+        !cell.classList.contains("hit") &&
+        !cell.classList.contains("miss")
+      ) {
         const cellId = cell.id;
         const [x, y] = cellId.split("-").slice(1);
+
         const attackResult = humanPlayer.attack(
           parseInt(x),
           parseInt(y),

@@ -9,7 +9,12 @@ const Ship = (length) => {
     return hits >= length;
   }
 
-  return { length, hit, isSunk };
+  let isSunkAlready = false;
+  function markSunk() {
+    isSunkAlready = true;
+  }
+
+  return { length, hit, isSunk, markSunk, isMarkedSunk: () => isSunkAlready }; // Added markSunk and isMarkedSunk methods
 };
 
 export default Ship;

@@ -7,25 +7,33 @@ const Player = (type) => {
 
   const attack = (x, y, opponentBoard) => {
     if (isComputer) {
-      const validAttacks = [];
-      for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 10; j++) {
-          if (
-            !opponentBoard.board[i][j] &&
-            !opponentBoard.missedAttacks.some(
-              (attack) => attack.y === j && attack.x === i
-            )
-          ) {
-            validAttacks.push({ x: j, y: i });
-          }
-        }
+      let validAttack = false;
+      while (!validAttack) {
+        x = Math.floor(Math.random() * 10);
+        y = Math.floor(Math.random() * 10);
+        validAttack =
+          !opponentBoard.missedAttacks.some(
+            (attack) => attack.x === x && attack.y === y
+          ) && !opponentBoard.board[y][x];
       }
-      const randomIndex = Math.floor(Math.random() * validAttacks.length);
-      x = validAttacks[randomIndex].x;
-      y = validAttacks[randomIndex].y;
     }
 
-    opponentBoard.receiveAttack(x, y);
+    const attackResult = opponentBoard.receiveAttack(x, y);
+
+    const sunkShipInfo = opponentBoard.checkSunkenShips();
+    if (sunkShipInfo) {
+      for (let i = 0; i < sunkShipInfo.length; i++) {
+        const sunkX = sunkShipInfo.isVertical
+          ? sunkShipInfo.x
+          : sunkShipInfo.x + i;
+        const sunkY = sunkShipInfo.isVertical
+          ? sunkShipInfo.y + i
+          : sunkShipInfo.y;
+        opponentBoard.board[sunkY][sunkX].markSunk(); // Mark the cell as sunk
+      }
+    }
+
+    return attackResult;
   };
 
   const placeShipsRandomly = () => {

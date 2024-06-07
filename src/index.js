@@ -33,6 +33,7 @@ function playComputerTurn() {
     const y = Math.floor(Math.random() * 10); // Generate random y
     computerPlayer.attack(x, y, humanPlayer.gameboard);
     domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
+    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
     if (humanPlayer.gameboard.areAllShipsSunk()) {
       alert("Computer wins!");
     } else {
@@ -47,11 +48,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   computerBoardContainer.addEventListener("click", (event) => {
     if (!currentPlayer.isComputer) {
+      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+      domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
+
       // Check if it's human's turn
       const cell = event.target;
-      if (cell.classList.contains("eachCell")) {
+      if (
+        cell.classList.contains("eachCell") &&
+        !cell.classList.contains("hit") &&
+        !cell.classList.contains("miss")
+      ) {
         const cellId = cell.id;
         const [x, y] = cellId.split("-").slice(1);
+
         const attackResult = humanPlayer.attack(
           parseInt(x),
           parseInt(y),
