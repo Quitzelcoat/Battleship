@@ -38,11 +38,11 @@ const Gameboard = () => {
     const ship = board[y][x];
     if (ship) {
       ship.hit();
-      // console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
+      console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
       return "hit";
     } else {
       missedAttacks.push({ x, y });
-      // console.log(`Missed at (${x}, ${y})`);
+      console.log(`Missed at (${x}, ${y})`);
       return "miss";
     }
   };

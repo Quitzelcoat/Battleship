@@ -4,6 +4,7 @@ const Ship = (length) => {
 
   function hit() {
     hits++;
+    return hits >= length ? "sunk" : "hit";
   }
 
   function isSunk() {
@@ -16,6 +17,9 @@ const Ship = (length) => {
 
   return {
     length,
+    get hits() {
+      return hits; // Use a getter for hits
+    },
     hit,
     isSunk,
     markSunk,
