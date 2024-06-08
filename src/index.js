@@ -25,21 +25,57 @@ function createBoard() {
   }
 }
 
-// function gamePlay() {}
-
 function playComputerTurn() {
   setTimeout(() => {
-    const x = Math.floor(Math.random() * 10); // Generate random x
-    const y = Math.floor(Math.random() * 10); // Generate random y
+    const x = Math.floor(Math.random() * 10);
+    const y = Math.floor(Math.random() * 10);
     computerPlayer.attack(x, y, humanPlayer.gameboard);
+
     domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
     domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
     if (humanPlayer.gameboard.areAllShipsSunk()) {
       alert("Computer wins!");
     } else {
       currentPlayer = humanPlayer;
     }
-  }, 1000);
+  }, 0);
+}
+
+function PlayPlayerTurn(event) {
+  if (!currentPlayer.isComputer) {
+    domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
+    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
+    const cell = event.target;
+    if (
+      cell.classList.contains("eachCell") &&
+      !cell.classList.contains("hit") &&
+      !cell.classList.contains("miss")
+    ) {
+      const cellId = cell.id;
+      const [x, y] = cellId.split("-").slice(1);
+
+      const attackResult = humanPlayer.attack(
+        parseInt(x),
+        parseInt(y),
+        computerPlayer.gameboard
+      );
+      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+      if (attackResult === "hit") {
+        cell.classList.add("hit");
+      } else if (attackResult === "miss") {
+        cell.classList.add("miss");
+      }
+
+      if (computerPlayer.gameboard.areAllShipsSunk()) {
+        alert("You win!");
+      } else {
+        currentPlayer = computerPlayer;
+        playComputerTurn();
+      }
+    }
+  }
 }
 
 //dom show and minipulation
@@ -47,39 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
   createBoard();
 
   computerBoardContainer.addEventListener("click", (event) => {
-    if (!currentPlayer.isComputer) {
-      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-      domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
-
-      // Check if it's human's turn
-      const cell = event.target;
-      if (
-        cell.classList.contains("eachCell") &&
-        !cell.classList.contains("hit") &&
-        !cell.classList.contains("miss")
-      ) {
-        const cellId = cell.id;
-        const [x, y] = cellId.split("-").slice(1);
-
-        const attackResult = humanPlayer.attack(
-          parseInt(x),
-          parseInt(y),
-          computerPlayer.gameboard
-        );
-        domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-        if (attackResult === "hit") {
-          cell.classList.add("hit");
-        } else if (attackResult === "miss") {
-          cell.classList.add("miss");
-        }
-
-        if (computerPlayer.gameboard.areAllShipsSunk()) {
-          alert("You win!");
-        } else {
-          currentPlayer = computerPlayer;
-          playComputerTurn();
-        }
-      }
-    }
+    PlayPlayerTurn(event);
   });
 });

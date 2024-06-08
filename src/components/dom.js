@@ -33,21 +33,24 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
+        // Check for hits first
+        if (ship && ship.hits > 0) {
+          cell.classList.add("hit");
+        }
+
+        // Then check for sunk ships
         if (ship && ship.isSunk()) {
           cell.classList.add("sunk");
+        } else if (
+          cell.classList.contains("hit") ||
+          cell.classList.contains("miss")
+        ) {
+          // Skip already marked cells
+          continue;
         } else {
-          if (
-            cell.classList.contains("hit") ||
-            cell.classList.contains("miss")
-          ) {
-            continue;
-          }
-
           cell.classList.remove("hit", "miss");
 
-          if (ship && ship.hits > 0) {
-            cell.classList.add("hit");
-          } else if (
+          if (
             gameboard.missedAttacks.some(
               (attack) => attack.x === x && attack.y === y
             )
