@@ -47,21 +47,24 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
+        // Check for hits first
+        if (ship && ship.hits > 0) {
+          cell.classList.add("hit");
+        }
+
+        // Then check for sunk ships
         if (ship && ship.isSunk()) {
           cell.classList.add("sunk");
+        } else if (
+          cell.classList.contains("hit") ||
+          cell.classList.contains("miss")
+        ) {
+          // Skip already marked cells
+          continue;
         } else {
-          if (
-            cell.classList.contains("hit") ||
-            cell.classList.contains("miss")
-          ) {
-            continue;
-          }
-
           cell.classList.remove("hit", "miss");
 
-          if (ship && ship.hits > 0) {
-            cell.classList.add("hit");
-          } else if (
+          if (
             gameboard.missedAttacks.some(
               (attack) => attack.x === x && attack.y === y
             )
@@ -134,9 +137,11 @@ const Gameboard = () => {
     const ship = board[y][x];
     if (ship) {
       ship.hit();
+      // console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
       return "hit";
     } else {
       missedAttacks.push({ x, y });
+      // console.log(`Missed at (${x}, ${y})`);
       return "miss";
     }
   };
@@ -208,10 +213,11 @@ const Player = (type) => {
       while (!validAttack) {
         x = Math.floor(Math.random() * 10);
         y = Math.floor(Math.random() * 10);
-        validAttack =
-          !opponentBoard.missedAttacks.some(
-            (attack) => attack.x === x && attack.y === y
-          ) && !opponentBoard.board[y][x];
+
+        // Correct the condition to allow attacks on cells with ships
+        validAttack = !opponentBoard.missedAttacks.some(
+          (attack) => attack.x === x && attack.y === y
+        ); // Remove the check for !opponentBoard.board[y][x]
       }
     }
 
@@ -226,7 +232,10 @@ const Player = (type) => {
         const sunkY = sunkShipInfo.isVertical
           ? sunkShipInfo.y + i
           : sunkShipInfo.y;
-        opponentBoard.board[sunkY][sunkX].markSunk(); // Mark the cell as sunk
+
+        if (sunkX >= 0 && sunkX < 10 && sunkY >= 0 && sunkY < 10) {
+          opponentBoard.board[sunkY][sunkX].markSunk(); // Mark the cell as sunk
+        }
       }
     }
 
@@ -277,6 +286,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const Ship = (length) => {
   let hits = 0;
+  let isSunkAlready = false;
 
   function hit() {
     hits++;
@@ -286,12 +296,17 @@ const Ship = (length) => {
     return hits >= length;
   }
 
-  let isSunkAlready = false;
   function markSunk() {
     isSunkAlready = true;
   }
 
-  return { length, hit, isSunk, markSunk, isMarkedSunk: () => isSunkAlready }; // Added markSunk and isMarkedSunk methods
+  return {
+    length,
+    hit,
+    isSunk,
+    markSunk,
+    isMarkedSunk: () => isSunkAlready,
+  }; // Added markSunk and isMarkedSunk methods
 };
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Ship);
@@ -391,21 +406,57 @@ function createBoard() {
   }
 }
 
-// function gamePlay() {}
-
 function playComputerTurn() {
   setTimeout(() => {
-    const x = Math.floor(Math.random() * 10); // Generate random x
-    const y = Math.floor(Math.random() * 10); // Generate random y
+    const x = Math.floor(Math.random() * 10);
+    const y = Math.floor(Math.random() * 10);
     computerPlayer.attack(x, y, humanPlayer.gameboard);
+
     domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
     domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
     if (humanPlayer.gameboard.areAllShipsSunk()) {
       alert("Computer wins!");
     } else {
       currentPlayer = humanPlayer;
     }
-  }, 1000);
+  }, 0);
+}
+
+function PlayPlayerTurn(event) {
+  if (!currentPlayer.isComputer) {
+    domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
+    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
+    const cell = event.target;
+    if (
+      cell.classList.contains("eachCell") &&
+      !cell.classList.contains("hit") &&
+      !cell.classList.contains("miss")
+    ) {
+      const cellId = cell.id;
+      const [x, y] = cellId.split("-").slice(1);
+
+      const attackResult = humanPlayer.attack(
+        parseInt(x),
+        parseInt(y),
+        computerPlayer.gameboard
+      );
+      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+      if (attackResult === "hit") {
+        cell.classList.add("hit");
+      } else if (attackResult === "miss") {
+        cell.classList.add("miss");
+      }
+
+      if (computerPlayer.gameboard.areAllShipsSunk()) {
+        alert("You win!");
+      } else {
+        currentPlayer = computerPlayer;
+        playComputerTurn();
+      }
+    }
+  }
 }
 
 //dom show and minipulation
@@ -413,40 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
   createBoard();
 
   computerBoardContainer.addEventListener("click", (event) => {
-    if (!currentPlayer.isComputer) {
-      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-      domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
-
-      // Check if it's human's turn
-      const cell = event.target;
-      if (
-        cell.classList.contains("eachCell") &&
-        !cell.classList.contains("hit") &&
-        !cell.classList.contains("miss")
-      ) {
-        const cellId = cell.id;
-        const [x, y] = cellId.split("-").slice(1);
-
-        const attackResult = humanPlayer.attack(
-          parseInt(x),
-          parseInt(y),
-          computerPlayer.gameboard
-        );
-        domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-        if (attackResult === "hit") {
-          cell.classList.add("hit");
-        } else if (attackResult === "miss") {
-          cell.classList.add("miss");
-        }
-
-        if (computerPlayer.gameboard.areAllShipsSunk()) {
-          alert("You win!");
-        } else {
-          currentPlayer = computerPlayer;
-          playComputerTurn();
-        }
-      }
-    }
+    PlayPlayerTurn(event);
   });
 });
 
