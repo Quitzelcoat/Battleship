@@ -50,8 +50,8 @@ const dom = () => {
         // Clear existing classes
         cell.classList.remove("hit", "miss", "sunk");
 
-        // Mark hits on individual cells ONLY IF NOT SUNK
-        if (ship && ship.hits > 0 && !ship.isSunk()) {
+        // Mark hits on individual cells if they are not part of a sunk ship
+        if (ship && ship.hits[y - ship.y] && !ship.isSunk()) {
           cell.classList.add("hit");
         }
 
@@ -67,8 +67,8 @@ const dom = () => {
         // Mark sunk ships (all cells)
         if (ship && ship.isSunk()) {
           const shipLength = ship.length;
-          const startX = ship.isVertical ? x : x - ship.hits + 1;
-          const startY = ship.isVertical ? y - ship.hits + 1 : y;
+          const startX = ship.isVertical ? ship.x : ship.x; // Use ship's original x coordinate for startX
+          const startY = ship.isVertical ? ship.y : ship.y; // Use ship's original y coordinate for startY
 
           for (let i = 0; i < shipLength; i++) {
             const sunkX = ship.isVertical ? startX : startX + i;
@@ -120,6 +120,9 @@ const Gameboard = () => {
       const yCoord = isVertical ? y + i : y;
       board[yCoord][xCoord] = ship;
     }
+
+    // Set the ship's position after successful placement
+    ship.setPosition(x, y, isVertical);
     return true;
   };
 
@@ -144,9 +147,10 @@ const Gameboard = () => {
   const receiveAttack = (x, y) => {
     const ship = board[y][x];
     if (ship) {
-      ship.hit();
+      const position = ship.isVertical ? y - ship.y : x - ship.x;
+      const attackResult = ship.hit(position);
       console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
-      return "hit";
+      return attackResult;
     } else {
       missedAttacks.push({ x, y });
       console.log(`Missed at (${x}, ${y})`);
@@ -293,16 +297,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 const Ship = (length) => {
-  let hits = 0;
+  const hits = Array(length).fill(false);
   let isSunkAlready = false;
 
-  function hit() {
-    hits++;
-    return hits >= length ? "sunk" : "hit";
+  // Add properties for coordinates and orientation
+  let x, y, isVertical;
+
+  function setPosition(newX, newY, newIsVertical) {
+    x = newX;
+    y = newY;
+    isVertical = newIsVertical;
+  }
+
+  function hit(position) {
+    if (!hits[position]) {
+      hits[position] = true;
+    }
+    return hits.every((hit) => hit) ? "sunk" : "hit";
   }
 
   function isSunk() {
-    return hits >= length;
+    return hits.every((hit) => hit);
   }
 
   function markSunk() {
@@ -312,13 +327,24 @@ const Ship = (length) => {
   return {
     length,
     get hits() {
-      return hits; // Use a getter for hits
+      return hits.filter((hit) => hit).length;
     },
     hit,
     isSunk,
     markSunk,
     isMarkedSunk: () => isSunkAlready,
-  }; // Added markSunk and isMarkedSunk methods
+
+    setPosition,
+    get x() {
+      return x;
+    },
+    get y() {
+      return y;
+    },
+    get isVertical() {
+      return isVertical;
+    },
+  };
 };
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Ship);
