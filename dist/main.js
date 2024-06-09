@@ -145,17 +145,20 @@ const Gameboard = () => {
   };
 
   const receiveAttack = (x, y) => {
-    // Check if the cell has a ship and it's already been hit
-    const cell = board[y][x];
-    if (cell && cell.hits > 0) {
-      console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
+    if (
+      (board[y][x] && board[y][x].isMarkedSunk()) ||
+      missedAttacks.some((attack) => attack.x === x && attack.y === y)
+    ) {
+      // If already attacked, do nothing
+      console.log(`Invalid attack: Cell at (${x}, ${y}) already attacked.`);
       return "invalid";
     }
 
-    if (cell) {
-      const position = cell.isVertical ? y - cell.y : x - cell.x;
-      const attackResult = cell.hit(position);
-      console.log(`Hit at (${x}, ${y})! Ship hits: ${cell.hits}`);
+    const ship = board[y][x];
+    if (ship) {
+      const position = ship.isVertical ? y - ship.y : x - ship.x;
+      const attackResult = ship.hit(position);
+      console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
       return attackResult;
     } else {
       missedAttacks.push({ x, y });
