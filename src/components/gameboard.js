@@ -38,11 +38,17 @@ const Gameboard = () => {
   };
 
   const receiveAttack = (x, y) => {
-    const ship = board[y][x];
-    if (ship) {
-      const position = ship.isVertical ? y - ship.y : x - ship.x;
-      const attackResult = ship.hit(position);
-      console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
+    // Check if the cell has a ship and it's already been hit
+    const cell = board[y][x];
+    if (cell && cell.hits > 0) {
+      console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
+      return "invalid";
+    }
+
+    if (cell) {
+      const position = cell.isVertical ? y - cell.y : x - cell.x;
+      const attackResult = cell.hit(position);
+      console.log(`Hit at (${x}, ${y})! Ship hits: ${cell.hits}`);
       return attackResult;
     } else {
       missedAttacks.push({ x, y });
