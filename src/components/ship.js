@@ -1,14 +1,25 @@
 const Ship = (length) => {
-  let hits = 0;
+  const hits = Array(length).fill(false);
   let isSunkAlready = false;
 
-  function hit() {
-    hits++;
-    return hits >= length ? "sunk" : "hit";
+  // Add properties for coordinates and orientation
+  let x, y, isVertical;
+
+  function setPosition(newX, newY, newIsVertical) {
+    x = newX;
+    y = newY;
+    isVertical = newIsVertical;
+  }
+
+  function hit(position) {
+    if (!hits[position]) {
+      hits[position] = true;
+    }
+    return hits.every((hit) => hit) ? "sunk" : "hit";
   }
 
   function isSunk() {
-    return hits >= length;
+    return hits.every((hit) => hit);
   }
 
   function markSunk() {
@@ -18,13 +29,24 @@ const Ship = (length) => {
   return {
     length,
     get hits() {
-      return hits; // Use a getter for hits
+      return hits.filter((hit) => hit).length;
     },
     hit,
     isSunk,
     markSunk,
     isMarkedSunk: () => isSunkAlready,
-  }; // Added markSunk and isMarkedSunk methods
+
+    setPosition,
+    get x() {
+      return x;
+    },
+    get y() {
+      return y;
+    },
+    get isVertical() {
+      return isVertical;
+    },
+  };
 };
 
 export default Ship;

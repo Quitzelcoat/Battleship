@@ -36,8 +36,8 @@ const dom = () => {
         // Clear existing classes
         cell.classList.remove("hit", "miss", "sunk");
 
-        // Mark hits on individual cells ONLY IF NOT SUNK
-        if (ship && ship.hits > 0 && !ship.isSunk()) {
+        // Mark hits on individual cells if they are not part of a sunk ship
+        if (ship && ship.hits[y - ship.y] && !ship.isSunk()) {
           cell.classList.add("hit");
         }
 
@@ -53,8 +53,8 @@ const dom = () => {
         // Mark sunk ships (all cells)
         if (ship && ship.isSunk()) {
           const shipLength = ship.length;
-          const startX = ship.isVertical ? x : x - ship.hits + 1;
-          const startY = ship.isVertical ? y - ship.hits + 1 : y;
+          const startX = ship.isVertical ? ship.x : ship.x; // Use ship's original x coordinate for startX
+          const startY = ship.isVertical ? ship.y : ship.y; // Use ship's original y coordinate for startY
 
           for (let i = 0; i < shipLength; i++) {
             const sunkX = ship.isVertical ? startX : startX + i;

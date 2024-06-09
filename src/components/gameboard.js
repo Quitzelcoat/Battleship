@@ -13,6 +13,9 @@ const Gameboard = () => {
       const yCoord = isVertical ? y + i : y;
       board[yCoord][xCoord] = ship;
     }
+
+    // Set the ship's position after successful placement
+    ship.setPosition(x, y, isVertical);
     return true;
   };
 
@@ -37,9 +40,10 @@ const Gameboard = () => {
   const receiveAttack = (x, y) => {
     const ship = board[y][x];
     if (ship) {
-      ship.hit();
+      const position = ship.isVertical ? y - ship.y : x - ship.x;
+      const attackResult = ship.hit(position);
       console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
-      return "hit";
+      return attackResult;
     } else {
       missedAttacks.push({ x, y });
       console.log(`Missed at (${x}, ${y})`);
