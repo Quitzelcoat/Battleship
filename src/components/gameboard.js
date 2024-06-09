@@ -50,13 +50,22 @@ const Gameboard = () => {
     const ship = board[y][x];
     if (ship) {
       const position = ship.isVertical ? y - ship.y : x - ship.x;
-      const attackResult = ship.hit(position);
+      const attackResult = ship.hit(position); // Use the modified hit method
+      if (attackResult === "invalid") {
+        console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
+        return "invalid"; // Don't register the attack if it's invalid
+      }
       console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
       return attackResult;
     } else {
-      missedAttacks.push({ x, y });
-      console.log(`Missed at (${x}, ${y})`);
-      return "miss";
+      if (!missedAttacks.some((attack) => attack.x === x && attack.y === y)) {
+        missedAttacks.push({ x, y }); // Only push if it's a new miss
+        console.log(`Missed at (${x}, ${y})`);
+        return "miss";
+      } else {
+        console.log(`Invalid attack: Cell at (${x}, ${y}) already missed.`);
+        return "invalid";
+      }
     }
   };
 

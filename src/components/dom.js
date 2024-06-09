@@ -33,11 +33,11 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
-        // Clear existing classes
-        cell.classList.remove("hit", "miss", "sunk");
+        // Clear existing classes (except "hit")
+        cell.classList.remove("miss", "sunk");
 
-        // Mark hits on individual cells if they are not part of a sunk ship
-        if (ship && ship.hits[y - ship.y] && !ship.isSunk()) {
+        // Mark hits only if the ship exists at that location
+        if (ship && ship.hits[y - ship.y]) {
           cell.classList.add("hit");
         }
 
@@ -53,8 +53,8 @@ const dom = () => {
         // Mark sunk ships (all cells)
         if (ship && ship.isSunk()) {
           const shipLength = ship.length;
-          const startX = ship.isVertical ? ship.x : ship.x; // Use ship's original x coordinate for startX
-          const startY = ship.isVertical ? ship.y : ship.y; // Use ship's original y coordinate for startY
+          const startX = ship.x; // Use ship's original x coordinate for startX
+          const startY = ship.y; // Use ship's original y coordinate for startY
 
           for (let i = 0; i < shipLength; i++) {
             const sunkX = ship.isVertical ? startX : startX + i;

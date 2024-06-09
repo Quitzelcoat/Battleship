@@ -47,11 +47,11 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
-        // Clear existing classes
-        cell.classList.remove("hit", "miss", "sunk");
+        // Clear existing classes (except "hit")
+        cell.classList.remove("miss", "sunk");
 
-        // Mark hits on individual cells if they are not part of a sunk ship
-        if (ship && ship.hits[y - ship.y] && !ship.isSunk()) {
+        // Mark hits only if the ship exists at that location
+        if (ship && ship.hits[y - ship.y]) {
           cell.classList.add("hit");
         }
 
@@ -67,8 +67,8 @@ const dom = () => {
         // Mark sunk ships (all cells)
         if (ship && ship.isSunk()) {
           const shipLength = ship.length;
-          const startX = ship.isVertical ? ship.x : ship.x; // Use ship's original x coordinate for startX
-          const startY = ship.isVertical ? ship.y : ship.y; // Use ship's original y coordinate for startY
+          const startX = ship.x; // Use ship's original x coordinate for startX
+          const startY = ship.y; // Use ship's original y coordinate for startY
 
           for (let i = 0; i < shipLength; i++) {
             const sunkX = ship.isVertical ? startX : startX + i;
@@ -157,13 +157,22 @@ const Gameboard = () => {
     const ship = board[y][x];
     if (ship) {
       const position = ship.isVertical ? y - ship.y : x - ship.x;
-      const attackResult = ship.hit(position);
+      const attackResult = ship.hit(position); // Use the modified hit method
+      if (attackResult === "invalid") {
+        console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
+        return "invalid"; // Don't register the attack if it's invalid
+      }
       console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
       return attackResult;
     } else {
-      missedAttacks.push({ x, y });
-      console.log(`Missed at (${x}, ${y})`);
-      return "miss";
+      if (!missedAttacks.some((attack) => attack.x === x && attack.y === y)) {
+        missedAttacks.push({ x, y }); // Only push if it's a new miss
+        console.log(`Missed at (${x}, ${y})`);
+        return "miss";
+      } else {
+        console.log(`Invalid attack: Cell at (${x}, ${y}) already missed.`);
+        return "invalid";
+      }
     }
   };
 
@@ -235,10 +244,11 @@ const Player = (type) => {
         x = Math.floor(Math.random() * 10);
         y = Math.floor(Math.random() * 10);
 
-        // Correct the condition to allow attacks on cells with ships
-        validAttack = !opponentBoard.missedAttacks.some(
-          (attack) => attack.x === x && attack.y === y
-        ); // Remove the check for !opponentBoard.board[y][x]
+        const cell = document.getElementById(`playerBoard-${x}-${y}`); // Get the cell element
+        validAttack =
+          !opponentBoard.missedAttacks.some(
+            (attack) => attack.x === x && attack.y === y
+          ) && !cell.classList.contains("hit"); // Ensure it's not already a hit
       }
     }
 
@@ -319,10 +329,13 @@ const Ship = (length) => {
   }
 
   function hit(position) {
-    if (!hits[position]) {
+    if (position >= 0 && position < this.length && !hits[position]) {
+      // Check if position is valid and not already hit
       hits[position] = true;
+      return hits.every((hit) => hit) ? "sunk" : "hit";
+    } else {
+      return "invalid"; // Return 'invalid' for invalid or repeated hits
     }
-    return hits.every((hit) => hit) ? "sunk" : "hit";
   }
 
   function isSunk() {
@@ -455,12 +468,18 @@ function createBoard() {
 
 function playComputerTurn() {
   setTimeout(() => {
-    const x = Math.floor(Math.random() * 10);
-    const y = Math.floor(Math.random() * 10);
-    computerPlayer.attack(x, y, humanPlayer.gameboard);
+    let attackResult;
+    do {
+      const x = Math.floor(Math.random() * 10);
+      const y = Math.floor(Math.random() * 10);
+      attackResult = computerPlayer.attack(x, y, humanPlayer.gameboard);
+    } while (attackResult === "invalid");
 
     domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
-    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
+    if (!humanPlayer.gameboard.areAllShipsSunk()) {
+      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+    }
 
     if (humanPlayer.gameboard.areAllShipsSunk()) {
       alert("Computer wins!");
@@ -490,17 +509,24 @@ function PlayPlayerTurn(event) {
         computerPlayer.gameboard
       );
       domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-      if (attackResult === "hit") {
-        cell.classList.add("hit");
-      } else if (attackResult === "miss") {
-        cell.classList.add("miss");
-      }
 
-      if (computerPlayer.gameboard.areAllShipsSunk()) {
-        alert("You win!");
+      if (attackResult !== "invalid") {
+        domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+        if (attackResult === "hit") {
+          cell.classList.add("hit");
+        } else if (attackResult === "miss") {
+          cell.classList.add("miss");
+        }
+
+        if (computerPlayer.gameboard.areAllShipsSunk()) {
+          alert("You win!");
+        } else {
+          currentPlayer = computerPlayer;
+          playComputerTurn();
+        }
       } else {
-        currentPlayer = computerPlayer;
-        playComputerTurn();
+        // Handle invalid attack (e.g., display a message)
+        console.log("Invalid attack. Please try again."); // Or show an alert
       }
     }
   }

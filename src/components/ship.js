@@ -12,10 +12,13 @@ const Ship = (length) => {
   }
 
   function hit(position) {
-    if (!hits[position]) {
+    if (position >= 0 && position < this.length && !hits[position]) {
+      // Check if position is valid and not already hit
       hits[position] = true;
+      return hits.every((hit) => hit) ? "sunk" : "hit";
+    } else {
+      return "invalid"; // Return 'invalid' for invalid or repeated hits
     }
-    return hits.every((hit) => hit) ? "sunk" : "hit";
   }
 
   function isSunk() {

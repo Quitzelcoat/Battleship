@@ -27,12 +27,18 @@ function createBoard() {
 
 function playComputerTurn() {
   setTimeout(() => {
-    const x = Math.floor(Math.random() * 10);
-    const y = Math.floor(Math.random() * 10);
-    computerPlayer.attack(x, y, humanPlayer.gameboard);
+    let attackResult;
+    do {
+      const x = Math.floor(Math.random() * 10);
+      const y = Math.floor(Math.random() * 10);
+      attackResult = computerPlayer.attack(x, y, humanPlayer.gameboard);
+    } while (attackResult === "invalid");
 
     domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
-    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
+    if (!humanPlayer.gameboard.areAllShipsSunk()) {
+      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+    }
 
     if (humanPlayer.gameboard.areAllShipsSunk()) {
       alert("Computer wins!");
@@ -62,17 +68,24 @@ function PlayPlayerTurn(event) {
         computerPlayer.gameboard
       );
       domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-      if (attackResult === "hit") {
-        cell.classList.add("hit");
-      } else if (attackResult === "miss") {
-        cell.classList.add("miss");
-      }
 
-      if (computerPlayer.gameboard.areAllShipsSunk()) {
-        alert("You win!");
+      if (attackResult !== "invalid") {
+        domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+        if (attackResult === "hit") {
+          cell.classList.add("hit");
+        } else if (attackResult === "miss") {
+          cell.classList.add("miss");
+        }
+
+        if (computerPlayer.gameboard.areAllShipsSunk()) {
+          alert("You win!");
+        } else {
+          currentPlayer = computerPlayer;
+          playComputerTurn();
+        }
       } else {
-        currentPlayer = computerPlayer;
-        playComputerTurn();
+        // Handle invalid attack (e.g., display a message)
+        console.log("Invalid attack. Please try again."); // Or show an alert
       }
     }
   }

@@ -12,10 +12,11 @@ const Player = (type) => {
         x = Math.floor(Math.random() * 10);
         y = Math.floor(Math.random() * 10);
 
-        // Correct the condition to allow attacks on cells with ships
-        validAttack = !opponentBoard.missedAttacks.some(
-          (attack) => attack.x === x && attack.y === y
-        ); // Remove the check for !opponentBoard.board[y][x]
+        const cell = document.getElementById(`playerBoard-${x}-${y}`); // Get the cell element
+        validAttack =
+          !opponentBoard.missedAttacks.some(
+            (attack) => attack.x === x && attack.y === y
+          ) && !cell.classList.contains("hit"); // Ensure it's not already a hit
       }
     }
 
