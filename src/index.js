@@ -2,7 +2,6 @@ import Player from "./components/players.js";
 // import Ship from "./components/ship.js";
 import dom from "./components/dom.js";
 
-// gameboard example run.
 const humanPlayer = Player("human");
 const computerPlayer = Player("computer");
 let currentPlayer = humanPlayer;
@@ -16,7 +15,6 @@ const computerBoardContainer = document.getElementById("computerBoard");
 const humanBoardContainer = document.getElementById("playerBoard");
 
 function createBoard() {
-  // Check if elements exist
   if (humanBoardContainer && computerBoardContainer) {
     domFunctions.renderBoard(humanPlayer.gameboard, "playerBoard");
     domFunctions.renderBoard(computerPlayer.gameboard, "computerBoard");
@@ -50,9 +48,6 @@ function playComputerTurn() {
 
 function PlayPlayerTurn(event) {
   if (!currentPlayer.isComputer) {
-    domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
-    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-
     const cell = event.target;
     if (
       cell.classList.contains("eachCell") &&
@@ -60,17 +55,12 @@ function PlayPlayerTurn(event) {
       !cell.classList.contains("miss")
     ) {
       const cellId = cell.id;
-      const [x, y] = cellId.split("-").slice(1);
+      const [x, y] = cellId.split("-").slice(1).map(Number);
 
-      const attackResult = humanPlayer.attack(
-        parseInt(x),
-        parseInt(y),
-        computerPlayer.gameboard
-      );
-      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-
+      const attackResult = humanPlayer.attack(x, y, computerPlayer.gameboard);
       if (attackResult !== "invalid") {
         domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
         if (attackResult === "hit") {
           cell.classList.add("hit");
         } else if (attackResult === "miss") {
@@ -84,8 +74,7 @@ function PlayPlayerTurn(event) {
           playComputerTurn();
         }
       } else {
-        // Handle invalid attack (e.g., display a message)
-        console.log("Invalid attack. Please try again."); // Or show an alert
+        console.log("Invalid attack. Please try again.");
       }
     }
   }

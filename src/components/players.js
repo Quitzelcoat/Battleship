@@ -12,11 +12,11 @@ const Player = (type) => {
         x = Math.floor(Math.random() * 10);
         y = Math.floor(Math.random() * 10);
 
-        const cell = document.getElementById(`playerBoard-${x}-${y}`); // Get the cell element
+        const cell = document.getElementById(`playerBoard-${x}-${y}`);
         validAttack =
           !opponentBoard.missedAttacks.some(
             (attack) => attack.x === x && attack.y === y
-          ) && !cell.classList.contains("hit"); // Ensure it's not already a hit
+          ) && !cell.classList.contains("hit");
       }
     }
 
@@ -33,7 +33,7 @@ const Player = (type) => {
           : sunkShipInfo.y;
 
         if (sunkX >= 0 && sunkX < 10 && sunkY >= 0 && sunkY < 10) {
-          opponentBoard.board[sunkY][sunkX].markSunk(); // Mark the cell as sunk
+          opponentBoard.board[sunkY][sunkX].markSunk();
         }
       }
     }

@@ -2,7 +2,6 @@ const Ship = (length) => {
   const hits = Array(length).fill(false);
   let isSunkAlready = false;
 
-  // Add properties for coordinates and orientation
   let x, y, isVertical;
 
   function setPosition(newX, newY, newIsVertical) {
@@ -13,11 +12,10 @@ const Ship = (length) => {
 
   function hit(position) {
     if (position >= 0 && position < this.length && !hits[position]) {
-      // Check if position is valid and not already hit
       hits[position] = true;
       return hits.every((hit) => hit) ? "sunk" : "hit";
     } else {
-      return "invalid"; // Return 'invalid' for invalid or repeated hits
+      return "invalid";
     }
   }
 

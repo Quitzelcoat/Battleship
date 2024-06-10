@@ -33,15 +33,12 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
-        // Clear existing classes (except "hit")
         cell.classList.remove("miss", "sunk");
 
-        // Mark hits only if the ship exists at that location
         if (ship && ship.hits[y - ship.y]) {
           cell.classList.add("hit");
         }
 
-        // Mark misses based on missedAttacks array
         if (
           gameboard.missedAttacks.some(
             (attack) => attack.x === x && attack.y === y
@@ -50,11 +47,10 @@ const dom = () => {
           cell.classList.add("miss");
         }
 
-        // Mark sunk ships (all cells)
         if (ship && ship.isSunk()) {
           const shipLength = ship.length;
-          const startX = ship.x; // Use ship's original x coordinate for startX
-          const startY = ship.y; // Use ship's original y coordinate for startY
+          const startX = ship.x;
+          const startY = ship.y;
 
           for (let i = 0; i < shipLength; i++) {
             const sunkX = ship.isVertical ? startX : startX + i;

@@ -47,15 +47,12 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
-        // Clear existing classes (except "hit")
         cell.classList.remove("miss", "sunk");
 
-        // Mark hits only if the ship exists at that location
         if (ship && ship.hits[y - ship.y]) {
           cell.classList.add("hit");
         }
 
-        // Mark misses based on missedAttacks array
         if (
           gameboard.missedAttacks.some(
             (attack) => attack.x === x && attack.y === y
@@ -64,11 +61,10 @@ const dom = () => {
           cell.classList.add("miss");
         }
 
-        // Mark sunk ships (all cells)
         if (ship && ship.isSunk()) {
           const shipLength = ship.length;
-          const startX = ship.x; // Use ship's original x coordinate for startX
-          const startY = ship.y; // Use ship's original y coordinate for startY
+          const startX = ship.x;
+          const startY = ship.y;
 
           for (let i = 0; i < shipLength; i++) {
             const sunkX = ship.isVertical ? startX : startX + i;
@@ -121,7 +117,6 @@ const Gameboard = () => {
       board[yCoord][xCoord] = ship;
     }
 
-    // Set the ship's position after successful placement
     ship.setPosition(x, y, isVertical);
     return true;
   };
@@ -149,7 +144,6 @@ const Gameboard = () => {
       (board[y][x] && board[y][x].isMarkedSunk()) ||
       missedAttacks.some((attack) => attack.x === x && attack.y === y)
     ) {
-      // If already attacked, do nothing
       console.log(`Invalid attack: Cell at (${x}, ${y}) already attacked.`);
       return "invalid";
     }
@@ -157,16 +151,16 @@ const Gameboard = () => {
     const ship = board[y][x];
     if (ship) {
       const position = ship.isVertical ? y - ship.y : x - ship.x;
-      const attackResult = ship.hit(position); // Use the modified hit method
+      const attackResult = ship.hit(position);
       if (attackResult === "invalid") {
         console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
-        return "invalid"; // Don't register the attack if it's invalid
+        return "invalid";
       }
       console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
       return attackResult;
     } else {
       if (!missedAttacks.some((attack) => attack.x === x && attack.y === y)) {
-        missedAttacks.push({ x, y }); // Only push if it's a new miss
+        missedAttacks.push({ x, y });
         console.log(`Missed at (${x}, ${y})`);
         return "miss";
       } else {
@@ -191,12 +185,12 @@ const Gameboard = () => {
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 10; j++) {
         if (board[i][j] && board[i][j].isSunk()) {
-          board[i][j].markSunk(); // Mark ship as sunk
-          return board[i][j]; // Return the sunk ship
+          board[i][j].markSunk();
+          return board[i][j];
         }
       }
     }
-    return null; // No ship was sunk
+    return null;
   };
 
   return {
@@ -244,11 +238,11 @@ const Player = (type) => {
         x = Math.floor(Math.random() * 10);
         y = Math.floor(Math.random() * 10);
 
-        const cell = document.getElementById(`playerBoard-${x}-${y}`); // Get the cell element
+        const cell = document.getElementById(`playerBoard-${x}-${y}`);
         validAttack =
           !opponentBoard.missedAttacks.some(
             (attack) => attack.x === x && attack.y === y
-          ) && !cell.classList.contains("hit"); // Ensure it's not already a hit
+          ) && !cell.classList.contains("hit");
       }
     }
 
@@ -265,7 +259,7 @@ const Player = (type) => {
           : sunkShipInfo.y;
 
         if (sunkX >= 0 && sunkX < 10 && sunkY >= 0 && sunkY < 10) {
-          opponentBoard.board[sunkY][sunkX].markSunk(); // Mark the cell as sunk
+          opponentBoard.board[sunkY][sunkX].markSunk();
         }
       }
     }
@@ -319,7 +313,6 @@ const Ship = (length) => {
   const hits = Array(length).fill(false);
   let isSunkAlready = false;
 
-  // Add properties for coordinates and orientation
   let x, y, isVertical;
 
   function setPosition(newX, newY, newIsVertical) {
@@ -330,11 +323,10 @@ const Ship = (length) => {
 
   function hit(position) {
     if (position >= 0 && position < this.length && !hits[position]) {
-      // Check if position is valid and not already hit
       hits[position] = true;
       return hits.every((hit) => hit) ? "sunk" : "hit";
     } else {
-      return "invalid"; // Return 'invalid' for invalid or repeated hits
+      return "invalid";
     }
   }
 
@@ -443,7 +435,6 @@ __webpack_require__.r(__webpack_exports__);
 // import Ship from "./components/ship.js";
 
 
-// gameboard example run.
 const humanPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("human");
 const computerPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("computer");
 let currentPlayer = humanPlayer;
@@ -457,7 +448,6 @@ const computerBoardContainer = document.getElementById("computerBoard");
 const humanBoardContainer = document.getElementById("playerBoard");
 
 function createBoard() {
-  // Check if elements exist
   if (humanBoardContainer && computerBoardContainer) {
     domFunctions.renderBoard(humanPlayer.gameboard, "playerBoard");
     domFunctions.renderBoard(computerPlayer.gameboard, "computerBoard");
@@ -491,9 +481,6 @@ function playComputerTurn() {
 
 function PlayPlayerTurn(event) {
   if (!currentPlayer.isComputer) {
-    domFunctions.updateBoard(humanPlayer.gameboard, "playerBoard");
-    domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-
     const cell = event.target;
     if (
       cell.classList.contains("eachCell") &&
@@ -501,17 +488,12 @@ function PlayPlayerTurn(event) {
       !cell.classList.contains("miss")
     ) {
       const cellId = cell.id;
-      const [x, y] = cellId.split("-").slice(1);
+      const [x, y] = cellId.split("-").slice(1).map(Number);
 
-      const attackResult = humanPlayer.attack(
-        parseInt(x),
-        parseInt(y),
-        computerPlayer.gameboard
-      );
-      domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
-
+      const attackResult = humanPlayer.attack(x, y, computerPlayer.gameboard);
       if (attackResult !== "invalid") {
         domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
+
         if (attackResult === "hit") {
           cell.classList.add("hit");
         } else if (attackResult === "miss") {
@@ -525,8 +507,7 @@ function PlayPlayerTurn(event) {
           playComputerTurn();
         }
       } else {
-        // Handle invalid attack (e.g., display a message)
-        console.log("Invalid attack. Please try again."); // Or show an alert
+        console.log("Invalid attack. Please try again.");
       }
     }
   }

@@ -14,7 +14,6 @@ const Gameboard = () => {
       board[yCoord][xCoord] = ship;
     }
 
-    // Set the ship's position after successful placement
     ship.setPosition(x, y, isVertical);
     return true;
   };
@@ -42,7 +41,6 @@ const Gameboard = () => {
       (board[y][x] && board[y][x].isMarkedSunk()) ||
       missedAttacks.some((attack) => attack.x === x && attack.y === y)
     ) {
-      // If already attacked, do nothing
       console.log(`Invalid attack: Cell at (${x}, ${y}) already attacked.`);
       return "invalid";
     }
@@ -50,16 +48,16 @@ const Gameboard = () => {
     const ship = board[y][x];
     if (ship) {
       const position = ship.isVertical ? y - ship.y : x - ship.x;
-      const attackResult = ship.hit(position); // Use the modified hit method
+      const attackResult = ship.hit(position);
       if (attackResult === "invalid") {
         console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
-        return "invalid"; // Don't register the attack if it's invalid
+        return "invalid";
       }
       console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
       return attackResult;
     } else {
       if (!missedAttacks.some((attack) => attack.x === x && attack.y === y)) {
-        missedAttacks.push({ x, y }); // Only push if it's a new miss
+        missedAttacks.push({ x, y });
         console.log(`Missed at (${x}, ${y})`);
         return "miss";
       } else {
@@ -84,12 +82,12 @@ const Gameboard = () => {
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 10; j++) {
         if (board[i][j] && board[i][j].isSunk()) {
-          board[i][j].markSunk(); // Mark ship as sunk
-          return board[i][j]; // Return the sunk ship
+          board[i][j].markSunk();
+          return board[i][j];
         }
       }
     }
-    return null; // No ship was sunk
+    return null;
   };
 
   return {
