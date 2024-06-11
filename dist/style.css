@@ -7,6 +7,10 @@ body {
   align-content: space-between;
 }
 
+#container {
+  grid-row: 2/4;
+}
+
 .gameTitle {
   color: #ecfffd;
   font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
@@ -77,6 +81,10 @@ body {
   border: none;
   cursor: pointer;
   text-decoration: none;
+}
+
+#foot {
+  grid-row: 4/5;
 }
 
 @media (max-width: 768px) {
