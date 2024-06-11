@@ -2,10 +2,10 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/components/dom.js":
-/*!*******************************!*\
-  !*** ./src/components/dom.js ***!
-  \*******************************/
+/***/ "./src/dom.js":
+/*!********************!*\
+  !*** ./src/dom.js ***!
+  \********************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -89,10 +89,10 @@ const dom = () => {
 
 /***/ }),
 
-/***/ "./src/components/gameboard.js":
-/*!*************************************!*\
-  !*** ./src/components/gameboard.js ***!
-  \*************************************/
+/***/ "./src/gameboard.js":
+/*!**************************!*\
+  !*** ./src/gameboard.js ***!
+  \**************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -233,18 +233,18 @@ const Gameboard = () => {
 
 /***/ }),
 
-/***/ "./src/components/players.js":
-/*!***********************************!*\
-  !*** ./src/components/players.js ***!
-  \***********************************/
+/***/ "./src/players.js":
+/*!************************!*\
+  !*** ./src/players.js ***!
+  \************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _gameboard_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gameboard.js */ "./src/components/gameboard.js");
-/* harmony import */ var _ship_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ship.js */ "./src/components/ship.js");
+/* harmony import */ var _gameboard_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gameboard.js */ "./src/gameboard.js");
+/* harmony import */ var _ship_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ship.js */ "./src/ship.js");
 
 
 
@@ -320,10 +320,10 @@ const Player = (type) => {
 
 /***/ }),
 
-/***/ "./src/components/ship.js":
-/*!********************************!*\
-  !*** ./src/components/ship.js ***!
-  \********************************/
+/***/ "./src/ship.js":
+/*!*********************!*\
+  !*** ./src/ship.js ***!
+  \*********************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -450,21 +450,20 @@ var __webpack_exports__ = {};
   !*** ./src/index.js ***!
   \**********************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _components_players_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/players.js */ "./src/components/players.js");
-/* harmony import */ var _components_dom_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/dom.js */ "./src/components/dom.js");
-
-// import Ship from "./components/ship.js";
+/* harmony import */ var _players_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./players.js */ "./src/players.js");
+/* harmony import */ var _dom_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dom.js */ "./src/dom.js");
 
 
-const humanPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("human");
-const computerPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("computer");
+
+const humanPlayer = (0,_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("human");
+const computerPlayer = (0,_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("computer");
 let currentPlayer = humanPlayer;
 
 let gameStarted = false;
 humanPlayer.placeShipsRandomly();
 computerPlayer.placeShipsRandomly();
 
-const domFunctions = (0,_components_dom_js__WEBPACK_IMPORTED_MODULE_1__["default"])();
+const domFunctions = (0,_dom_js__WEBPACK_IMPORTED_MODULE_1__["default"])();
 
 const computerBoardContainer = document.getElementById("computerBoard");
 const humanBoardContainer = document.getElementById("playerBoard");
