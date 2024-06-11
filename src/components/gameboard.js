@@ -1,7 +1,12 @@
 const Gameboard = () => {
   const board = Array.from({ length: 10 }, () => Array(10).fill(null));
-
   const missedAttacks = [];
+
+  const hitShipCells = [];
+
+  const storeHitShipCell = (x, y) => {
+    hitShipCells.push({ x, y });
+  };
 
   const placeShip = (ship, x, y, isVertical = false) => {
     if (!isValidPlacement(ship, x, y, isVertical)) {
@@ -53,12 +58,13 @@ const Gameboard = () => {
         console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
         return "invalid";
       }
-      console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
+
+      storeHitShipCell(x, y);
+
       return attackResult;
     } else {
       if (!missedAttacks.some((attack) => attack.x === x && attack.y === y)) {
         missedAttacks.push({ x, y });
-        console.log(`Missed at (${x}, ${y})`);
         return "miss";
       } else {
         console.log(`Invalid attack: Cell at (${x}, ${y}) already missed.`);
@@ -90,6 +96,19 @@ const Gameboard = () => {
     return null;
   };
 
+  const reset = () => {
+    // Clear the board array
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 10; x++) {
+        board[y][x] = null;
+      }
+    }
+
+    // Clear the missed attacks and hit ship cells arrays
+    missedAttacks.length = 0;
+    hitShipCells.length = 0;
+  };
+
   return {
     placeShip,
     receiveAttack,
@@ -101,6 +120,10 @@ const Gameboard = () => {
       return missedAttacks;
     },
     checkSunkenShips,
+    reset,
+    get hitShipCells() {
+      return hitShipCells;
+    },
   };
 };
 

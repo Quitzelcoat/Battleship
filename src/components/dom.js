@@ -33,9 +33,7 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
-        cell.classList.remove("miss", "sunk");
-
-        if (ship && ship.hits[y - ship.y]) {
+        if (ship && ship.hits[ship.isVertical ? x - ship.x : y - ship.y]) {
           cell.classList.add("hit");
         }
 

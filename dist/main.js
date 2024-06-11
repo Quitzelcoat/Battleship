@@ -47,9 +47,7 @@ const dom = () => {
 
         const ship = gameboard.board[y][x];
 
-        cell.classList.remove("miss", "sunk");
-
-        if (ship && ship.hits[y - ship.y]) {
+        if (ship && ship.hits[ship.isVertical ? x - ship.x : y - ship.y]) {
           cell.classList.add("hit");
         }
 
@@ -103,8 +101,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const Gameboard = () => {
   const board = Array.from({ length: 10 }, () => Array(10).fill(null));
-
   const missedAttacks = [];
+
+  const hitShipCells = [];
+
+  const storeHitShipCell = (x, y) => {
+    hitShipCells.push({ x, y });
+  };
 
   const placeShip = (ship, x, y, isVertical = false) => {
     if (!isValidPlacement(ship, x, y, isVertical)) {
@@ -156,12 +159,13 @@ const Gameboard = () => {
         console.log(`Invalid attack: Cell at (${x}, ${y}) already hit.`);
         return "invalid";
       }
-      console.log(`Hit at (${x}, ${y})! Ship hits: ${ship.hits}`);
+
+      storeHitShipCell(x, y);
+
       return attackResult;
     } else {
       if (!missedAttacks.some((attack) => attack.x === x && attack.y === y)) {
         missedAttacks.push({ x, y });
-        console.log(`Missed at (${x}, ${y})`);
         return "miss";
       } else {
         console.log(`Invalid attack: Cell at (${x}, ${y}) already missed.`);
@@ -193,6 +197,19 @@ const Gameboard = () => {
     return null;
   };
 
+  const reset = () => {
+    // Clear the board array
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 10; x++) {
+        board[y][x] = null;
+      }
+    }
+
+    // Clear the missed attacks and hit ship cells arrays
+    missedAttacks.length = 0;
+    hitShipCells.length = 0;
+  };
+
   return {
     placeShip,
     receiveAttack,
@@ -204,6 +221,10 @@ const Gameboard = () => {
       return missedAttacks;
     },
     checkSunkenShips,
+    reset,
+    get hitShipCells() {
+      return hitShipCells;
+    },
   };
 };
 
@@ -439,6 +460,7 @@ const humanPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["defa
 const computerPlayer = (0,_components_players_js__WEBPACK_IMPORTED_MODULE_0__["default"])("computer");
 let currentPlayer = humanPlayer;
 
+let gameStarted = false;
 humanPlayer.placeShipsRandomly();
 computerPlayer.placeShipsRandomly();
 
@@ -447,6 +469,7 @@ const domFunctions = (0,_components_dom_js__WEBPACK_IMPORTED_MODULE_1__["default
 const computerBoardContainer = document.getElementById("computerBoard");
 const humanBoardContainer = document.getElementById("playerBoard");
 
+// create the game boards
 function createBoard() {
   if (humanBoardContainer && computerBoardContainer) {
     domFunctions.renderBoard(humanPlayer.gameboard, "playerBoard");
@@ -456,9 +479,11 @@ function createBoard() {
   }
 }
 
+// computer turn
 function playComputerTurn() {
   setTimeout(() => {
     let attackResult;
+
     do {
       const x = Math.floor(Math.random() * 10);
       const y = Math.floor(Math.random() * 10);
@@ -471,6 +496,16 @@ function playComputerTurn() {
       domFunctions.updateBoard(computerPlayer.gameboard, "computerBoard");
     }
 
+    for (const hitCell of humanPlayer.gameboard.hitShipCells) {
+      const cellId = `playerBoard-${hitCell.x}-${hitCell.y}`;
+      const cell = document.getElementById(cellId);
+      if (cell) {
+        cell.classList.add("hit");
+      } else {
+        console.error(`Cell with ID ${cellId} not found`);
+      }
+    }
+
     if (humanPlayer.gameboard.areAllShipsSunk()) {
       alert("Computer wins!");
     } else {
@@ -479,6 +514,7 @@ function playComputerTurn() {
   }, 0);
 }
 
+// Player turn
 function PlayPlayerTurn(event) {
   if (!currentPlayer.isComputer) {
     const cell = event.target;
@@ -513,13 +549,36 @@ function PlayPlayerTurn(event) {
   }
 }
 
-//dom show and minipulation
-document.addEventListener("DOMContentLoaded", () => {
-  createBoard();
+//creating the board
+createBoard();
 
-  computerBoardContainer.addEventListener("click", (event) => {
-    PlayPlayerTurn(event);
-  });
+const placeShipsButton = document.getElementById("placeShipsRandomly");
+const startGameButton = document.getElementById("startGame");
+
+// play the game
+startGameButton.addEventListener("click", () => {
+  if (!gameStarted) {
+    gameStarted = true;
+    computerBoardContainer.addEventListener("click", (event) => {
+      PlayPlayerTurn(event);
+    });
+    placeShipsButton.style.display = "none";
+    startGameButton.style.display = "none";
+  }
+});
+
+// place the ships
+placeShipsButton.addEventListener("click", () => {
+  if (!gameStarted) {
+    humanPlayer.gameboard.reset();
+    computerPlayer.gameboard.reset();
+
+    humanPlayer.placeShipsRandomly();
+    computerPlayer.placeShipsRandomly();
+
+    domFunctions.renderBoard(humanPlayer.gameboard, "playerBoard");
+    domFunctions.renderBoard(computerPlayer.gameboard, "computerBoard");
+  }
 });
 
 })();
