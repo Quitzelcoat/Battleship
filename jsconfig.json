@@ -11,7 +11,7 @@
   "exclude": [
     "node_modules",
     "**/node_modules/*",
-    "**/*.test.js",
+    ".test.js",
     "webpack.config.cjs"
   ] // Exclude test files
 }

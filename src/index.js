@@ -1,6 +1,5 @@
-import Player from "./components/players.js";
-// import Ship from "./components/ship.js";
-import dom from "./components/dom.js";
+import Player from "./players.js";
+import dom from "./dom.js";
 
 const humanPlayer = Player("human");
 const computerPlayer = Player("computer");
